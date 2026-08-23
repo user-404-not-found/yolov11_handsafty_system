@@ -73,12 +73,17 @@ pip install onnxruntime-gpu
 
 ```text
 yolo_hand/
+|
 ├── model/                          # 核心執行程式與主模型資料夾
-│   ├── hand_detect_just_onnx.py     # 乾淨的 ONNX 測試腳本（單台相機快速測試用）
-│   ├── hand_detect_onnx_PLC.py      # 最終完成版！雙路攝影機 + 畫梯形 ROI + 控制 PLC 停機
-│   ├── hand_detect_v4.py            # .pt 模型的測試檔案（需要安裝 ultralytics 環境）
 │   ├── v4.onnx                      # 翻譯成通用格式的模型（跑部署、衝辨識速度用這個）
 │   └── v4.pt                        # PyTorch 原始模型權重
+|
+|
+├── test_program/                          # 核心執行程式與主模型資料夾
+│   ├── hand_detect_just_onnx.py     # 乾淨的 ONNX 測試腳本（單台相機快速測試用）
+│   ├── hand_detect_onnx_PLC.py      # 最終完成版！雙路攝影機 + 畫梯形 ROI + 控制 PLC 停機
+│   └── hand_detect_v4.py            # .pt 模型的測試檔案（需要安裝 ultralytics 環境）
+│    
 │
 └── YOLO_gloves_pro_v4/              # AI 模型訓練的原始紀錄與數據資料夾
     ├── weights/                     # 訓練過程中自動儲存的權重檔案庫
