@@ -16,6 +16,7 @@
 
 import argparse
 import json
+import threading
 import time
 from pathlib import Path
 
@@ -28,6 +29,47 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_MODEL = PROJECT_ROOT / "model" / "v4.onnx"
 DEFAULT_CONFIG = PROJECT_ROOT / "test_program" / "roi_config.json"
 WINDOW_NAMES = ("Hand Safety - Camera 0", "Hand Safety - Camera 1")
+
+
+class RTSPCamera:
+    """Read an RTSP stream in the background and expose only its newest frame."""
+
+    def __init__(self, url):
+        self.url = url
+        self.cap = cv2.VideoCapture(url, cv2.CAP_FFMPEG)
+        self.cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+        self.lock = threading.Lock()
+        self.ret = False
+        self.frame = None
+        self.running = True
+        self.thread = threading.Thread(target=self._update, daemon=True)
+        self.thread.start()
+
+    def _update(self):
+        while self.running:
+            ret, frame = self.cap.read()
+            if ret and frame is not None:
+                with self.lock:
+                    self.ret = True
+                    self.frame = frame
+            else:
+                with self.lock:
+                    self.ret = False
+                time.sleep(0.05)
+
+    def read(self):
+        with self.lock:
+            if self.frame is None:
+                return False, None
+            return self.ret, self.frame.copy()
+
+    def is_opened(self):
+        return self.cap.isOpened()
+
+    def release(self):
+        self.running = False
+        self.cap.release()
+        self.thread.join(timeout=1.0)
 
 
 def letterbox(image, new_shape=(640, 640), color=(114, 114, 114)):
@@ -192,18 +234,18 @@ def annotate_frame(frame, detections, roi, camera_index, fps, editing):
 def main():
     parser = argparse.ArgumentParser(description="雙鏡頭 ONNX 手部安全辨識")
     parser.add_argument("--model", type=Path, default=DEFAULT_MODEL)
-    parser.add_argument("--camera0", type=int, default=0)
-    parser.add_argument("--camera1", type=int, default=1)
+    parser.add_argument("--camera0", required=True, help="第一顆 IP Camera 的 RTSP URL")
+    parser.add_argument("--camera1", required=True, help="第二顆 IP Camera 的 RTSP URL")
     parser.add_argument("--confidence", type=float, default=0.35)
     parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG)
     args = parser.parse_args()
 
     session = create_session(args.model)
-    cameras = [cv2.VideoCapture(index) for index in (args.camera0, args.camera1)]
-    if not all(camera.isOpened() for camera in cameras):
+    cameras = [RTSPCamera(url) for url in (args.camera0, args.camera1)]
+    if not all(camera.is_opened() for camera in cameras):
         for camera in cameras:
             camera.release()
-        raise RuntimeError("無法開啟兩顆鏡頭，請確認 --camera0 / --camera1 編號")
+        raise RuntimeError("無法開啟 RTSP 串流，請確認網址、帳號密碼與網路連線")
 
     rois = load_rois(args.config)
     edit_points = [[], []]
@@ -229,8 +271,13 @@ def main():
             for camera in cameras:
                 success, frame = camera.read()
                 if not success:
-                    raise RuntimeError("讀取鏡頭畫面失敗")
+                    frames = []
+                    break
                 frames.append(frame)
+
+            if len(frames) != len(cameras):
+                cv2.waitKey(1)
+                continue
 
             now = time.perf_counter()
             fps = 2 / max(now - previous_time, 1e-6)

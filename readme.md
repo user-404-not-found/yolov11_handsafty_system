@@ -120,14 +120,21 @@ yolo_hand/
 請從專案根目錄執行：
 
 ```bash
-python test_program/hand_detect_dual_onnx.py
+python test_program/hand_detect_dual_onnx.py --camera0 "rtsp://帳號:密碼@192.168.1.100:554/串流路徑" --camera1 "rtsp://帳號:密碼@192.168.1.101:554/串流路徑"
 ```
 
-程式預設使用鏡頭 `0` 與 `1`，模型使用 `model/v4.onnx`，並會優先使用 CUDA，沒有 CUDA 時自動改用 CPU。若鏡頭編號不同，可以指定：
+程式需要兩個 IP Camera 的 RTSP URL，模型使用 `model/v4.onnx`，並會優先使用 CUDA，沒有 CUDA 時自動改用 CPU。每個 RTSP 串流會由背景執行緒持續讀取，只保留最新影格，避免 OpenCV 緩衝區堆積造成安全判定延遲。
 
 ```bash
-python test_program/hand_detect_dual_onnx.py --camera0 1 --camera1 2 --confidence 0.35
+python test_program/hand_detect_dual_onnx.py --camera0 "rtsp://admin:密碼@192.168.1.100:554/Streaming/Channels/101" --camera1 "rtsp://admin:密碼@192.168.1.101:554/Streaming/Channels/101" --confidence 0.35
 ```
+
+常見 RTSP 格式如下，實際路徑請依攝影機廠牌設定：
+
+* Hikvision：`rtsp://admin:密碼@IP:554/Streaming/Channels/101`
+* Dahua：`rtsp://admin:密碼@IP:554/cam/realmonitor?channel=1&subtype=0`
+* VIVOTEK：`rtsp://admin:密碼@IP:554/live.sdp`
+* 通用格式：`rtsp://admin:密碼@IP:554/h264/ch1/main/av_stream`
 
 啟動後操作方式：
 
