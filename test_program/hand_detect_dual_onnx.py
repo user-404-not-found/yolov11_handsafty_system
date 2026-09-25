@@ -1,4 +1,18 @@
-"""Dual-camera hand intrusion detection with a user-defined polygon ROI."""
+# ==========================================
+# Project: 手部安全監控系統 (Hand Safety system)
+# Author:  凃瑋禮
+# Date:    2026-09-25
+# Version: v4.0 (ONNX GPU Accelerated)
+# Description: 支援同時雙鏡頭的實時手部偵測與 ROI 入侵報警系統
+# 操作說明：
+# e：進入 ROI 編輯模式
+# 左鍵：新增 ROI 點
+# 右鍵：刪除最後一點
+# s：儲存 ROI
+# c：清除目前點
+# r：重設 ROI
+# q：離開
+# ==========================================
 
 import argparse
 import json
