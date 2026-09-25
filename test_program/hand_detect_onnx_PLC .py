@@ -24,7 +24,7 @@ print(f"🔌 嘗試連線至 PLC ({PLC_IP})...")
 
 
 session = ort.InferenceSession(
-    "D:/yolov11/ultralytics-8.3.39/v4.onnx", 
+    "model/v4.onnx", 
     providers=['CUDAExecutionProvider']
 )
 

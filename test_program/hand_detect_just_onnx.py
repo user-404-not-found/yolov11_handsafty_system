@@ -12,7 +12,7 @@ import time
 
 # 1. 啟動 ONNX 引擎
 session = ort.InferenceSession(
-    "D:/yolov11/ultralytics-8.3.39/v4.onnx",  #不是作者電腦文件路徑要改
+    "model/v4.onnx",  #不是作者電腦文件路徑要改
     providers=['CUDAExecutionProvider']
 )
 
@@ -33,7 +33,7 @@ def letterbox(im, new_shape=(640, 640), color=(114, 114, 114)):
 cap = cv2.VideoCapture(0)
 prev_time = 0
 
-print("AI辨識啟動中......")
+print("辨識啟動中......")
 
 while True:
     ret, frame = cap.read()

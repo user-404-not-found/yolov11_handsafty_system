@@ -1,7 +1,7 @@
 import cv2
 from ultralytics import YOLO
 
-model = YOLO("D:/yolov11/ultralytics-8.3.39/hand_gloves_pro_v4.pt") 
+model = YOLO("model/v4.pt") 
 cap = cv2.VideoCapture(0)
 
 if not cap.isOpened():
