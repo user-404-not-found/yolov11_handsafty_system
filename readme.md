@@ -81,6 +81,7 @@ yolo_hand/
 |
 ├── test_program/                          # 核心執行程式與主模型資料夾
 │   ├── hand_detect_just_onnx.py     # 乾淨的 ONNX 測試腳本（單台相機快速測試用）
+│   ├── hand_detect_dual_onnx.py     # 雙鏡頭 ONNX 辨識與自訂多邊形危險區域
 │   ├── hand_detect_onnx_PLC.py      # 最終完成版！雙路攝影機 + 畫梯形 ROI + 控制 PLC 停機
 │   └── hand_detect_v4.py            # .pt 模型的測試檔案（需要安裝 ultralytics 環境）
 │    
@@ -113,6 +114,30 @@ yolo_hand/
     ├── val_batch2_labels.jpg        # 驗證集 - 人類標註的正確答案（批次 2）
     └── val_batch2_pred.jpg          # 驗證集 - AI 實際上預測出來的結果（批次 2）
 ```
+
+### 雙鏡頭 ONNX 辨識與自訂 ROI
+
+請從專案根目錄執行：
+
+```bash
+python test_program/hand_detect_dual_onnx.py
+```
+
+程式預設使用鏡頭 `0` 與 `1`，模型使用 `model/v4.onnx`，並會優先使用 CUDA，沒有 CUDA 時自動改用 CPU。若鏡頭編號不同，可以指定：
+
+```bash
+python test_program/hand_detect_dual_onnx.py --camera0 1 --camera1 2 --confidence 0.35
+```
+
+啟動後操作方式：
+
+* 按 `e` 進入或離開 ROI 編輯模式。
+* 編輯模式中，在兩個視窗分別以滑鼠左鍵依序點擊多邊形頂點；右鍵可刪除最後一點。
+* 按 `s` 儲存兩個鏡頭的 ROI 到 `test_program/roi_config.json`。
+* 按 `c` 清除目前繪製中的頂點，按 `r` 將兩個 ROI 重設為畫面下方區域。
+* 按 `q` 離開程式。
+
+判定方式是將每個偵測框的底邊中點交給 `cv2.pointPolygonTest`；任一鏡頭的中點落在自己的 ROI 內，就在該視窗顯示 `STOP` 警示。這支腳本目前只負責辨識與畫面警示，PLC 連鎖可在確認鏡頭與 ROI 正常後再接入。
 
 ---
 
